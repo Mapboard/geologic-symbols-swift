@@ -1,0 +1,100 @@
+{
+ "bundle_format": 1,
+ "prefix": "lines",
+ "title": "Line fixture",
+ "authority": "user",
+ "version": "1",
+ "license": "CC0-1.0",
+ "line_defaults": {
+  "dash": {
+   "approximate": [
+    8,
+    2.5
+   ],
+   "inferred": [
+    4,
+    2.5
+   ],
+   "concealed": [
+    0.5,
+    2.5
+   ]
+  },
+  "questionable": {
+   "glyph": "decorations:query",
+   "interval": 40,
+   "offset": -4
+  }
+ },
+ "items": [
+  {
+   "name": "tooth",
+   "group": "decorations",
+   "kind": "glyph",
+   "title": "Tooth",
+   "viewBox": "-1 -1 2 2",
+   "body": "<path d=\"M-1,0L1,0L0,1Z\" fill=\"currentColor\"/>",
+   "glyph": {
+    "size": {
+     "width": 6,
+     "height": 6,
+     "units": "mm"
+    }
+   }
+  },
+  {
+   "name": "query",
+   "group": "decorations",
+   "kind": "glyph",
+   "title": "Query",
+   "viewBox": "0 0 2 2",
+   "body": "<rect width=\"2\" height=\"2\" fill=\"currentColor\"/>",
+   "glyph": {
+    "size": {
+     "width": 2,
+     "height": 2,
+     "units": "mm"
+    }
+   }
+  },
+  {
+   "name": "thrust",
+   "group": "faults",
+   "kind": "line",
+   "title": "Thrust",
+   "line": {
+    "ink": "#ff0000",
+    "oriented": true,
+    "locations": [
+     "accurate",
+     "inferred",
+     "concealed"
+    ],
+    "layers": [
+     {
+      "stroke": {
+       "width": 1
+      }
+     },
+     {
+      "place": {
+       "glyph": "decorations:tooth",
+       "interval": 20
+      }
+     }
+    ],
+    "options": {
+     "2": {
+      "layers": [
+       {
+        "stroke": {
+         "width": 1
+        }
+       }
+      ]
+     }
+    }
+   }
+  }
+ ]
+}

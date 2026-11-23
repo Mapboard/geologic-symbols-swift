@@ -217,9 +217,100 @@ extension CatalogSet {
         case .glyph:
             let size = r.item.glyph?.size?.points.applying(CGAffineTransform(scaleX: args.scale, y: args.scale))
             return glyphImage(id, size: size, style: args.style, scale: scale)
+        case .line:
+            guard let part = r.part else { return nil }
+            return linePartImage(r, part: part, args: args, flip: r.style.contains("flip"), scale: scale)
         default:
             return nil
         }
+    }
+}
+
+// MARK: Lines
+
+extension CatalogSet {
+    /// Draws a line id (`geo:faults:thrust-fault+inferred:option=2`) along a path in a y-down context;
+    /// false when the id is not a line or names a location state it lacks.
+    @discardableResult
+    public func drawLine(_ id: String, along points: [CGPoint], in context: CGContext, side: Int = 1,
+                         style: LineStyle = LineStyle()) -> Bool {
+        guard let r = resolve(id), r.kind == .line, let line = r.item.line else { return false }
+        let modifiers = LineModifiers(r.modifiers, side: side)
+        if let locations = line.locations, !locations.contains(modifiers.location) { return false }
+        LineRenderer.draw(line, defaults: r.bundle.collection.lineDefaults, along: points, in: context,
+                          modifiers: modifiers, style: style.applying(r.style)) { self.placedGlyph($0, for: r) }
+        return true
+    }
+
+    /// A preview of a line along a sample path, `size` points at `scale` pixels per point, for pickers and
+    /// legends. The sample is inset so decorations at its ends stay inside.
+    public func lineImage(_ id: String, size: CGSize = CGSize(width: 96, height: 24), sample: LineSample = .wavy,
+                          side: Int = 1, style: LineStyle = LineStyle(), scale: CGFloat = 2) -> CGImage? {
+        let w = max(1, Int((size.width * scale).rounded())), h = max(1, Int((size.height * scale).rounded()))
+        guard let space = CGColorSpace(name: CGColorSpace.sRGB),
+              let context = CGContext(data: nil, width: w, height: h, bitsPerComponent: 8, bytesPerRow: 0, space: space,
+                                      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+        else { return nil }
+        context.translateBy(x: 0, y: CGFloat(h))
+        context.scaleBy(x: scale, y: -scale)
+        if let background = style.background {
+            context.setFillColor(background)
+            context.fill(CGRect(origin: .zero, size: size))
+        }
+        let inset = min(size.height / 2, size.width / 8)
+        let rect = CGRect(origin: .zero, size: size).insetBy(dx: inset, dy: size.height / 4)
+        guard drawLine(id, along: sample.points(in: rect), in: context, side: side, style: style) else { return nil }
+        return context.makeImage()
+    }
+
+    /// The glyph a line places, by its reference: a key in the line's collection, or a full id.
+    func placedGlyph(_ ref: String, for line: ResolvedSymbol) -> PlacedGlyph? {
+        for candidate in ["\(line.bundle.prefix):\(ref)", ref] {
+            if let g = resolve(candidate), g.kind == .glyph, let drawing = try? g.bundle.drawing(for: g.item) {
+                return PlacedGlyph(drawing: drawing, item: g.item)
+            }
+        }
+        return nil
+    }
+
+    /// One part of a line as a map image: the glyph its place layer draws, at the layer's size, reflected
+    /// across the line for `flip`.
+    func linePartImage(_ r: ResolvedSymbol, part: String, args: StyleArguments, flip: Bool, scale: CGFloat) -> CGImage? {
+        guard let line = r.item.line else { return nil }
+        var option = 1
+        for arg in r.style where arg.hasPrefix("option=") { option = Int(arg.dropFirst(7)) ?? 1 }
+        let places = (line.layers(option: option) + [line.questionable.map(LineLayer.place)].compactMap { $0 })
+            .compactMap { layer -> PlaceLayer? in
+                if case .place(let p) = layer { return p }
+                return nil
+            }
+        let defaults = r.bundle.collection.lineDefaults?.questionable.map { [$0] } ?? []
+        guard let place = (places + defaults).first(where: { $0.partName == part }),
+              let g = placedGlyph(place.glyph, for: r)
+        else { return nil }
+        let nominal = g.item.glyph?.size.map { max($0.width, $0.height) } ?? 5
+        let side = (place.size ?? nominal) * 72 / 25.4 * args.scale
+        let vb = g.drawing.viewBox.size
+        let longest = max(vb.width, vb.height, 0.0001)
+        let box = CGSize(width: side * vb.width / longest, height: side * vb.height / longest)
+        var style = args.style
+        if style.ink == nil {
+            let rgb = line.ink.flatMap(parseHex) ?? (0, 0, 0)
+            style.ink = CGColor(srgbRed: rgb.0, green: rgb.1, blue: rgb.2, alpha: 1)
+        }
+        let w = max(1, Int((box.width * scale).rounded())), h = max(1, Int((box.height * scale).rounded()))
+        guard let space = CGColorSpace(name: CGColorSpace.sRGB),
+              let context = CGContext(data: nil, width: w, height: h, bitsPerComponent: 8, bytesPerRow: 0, space: space,
+                                      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+        else { return nil }
+        // Bitmap contexts are y-up; leaving that unflipped reflects the y-down artwork across the line.
+        if !flip {
+            context.translateBy(x: 0, y: CGFloat(h))
+            context.scaleBy(x: 1, y: -1)
+        }
+        SymbolRenderer.draw(g.drawing, in: context, rect: CGRect(x: 0, y: 0, width: w, height: h), style: style,
+                            recolorable: g.item.recolorable, preserveAspect: true)
+        return context.makeImage()
     }
 }
 

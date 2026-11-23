@@ -16,10 +16,13 @@ public struct SymbolCollection: Codable, Sendable {
     public var license: String?
     public var authors: [String]?
     public var provenance: Provenance?
+    /// Dashes per location state and the query mark, for the collection's lines.
+    public var lineDefaults: LineDefaults?
     public var items: [SymbolItem]
 
     enum CodingKeys: String, CodingKey {
         case bundleFormat = "bundle_format"
+        case lineDefaults = "line_defaults"
         case prefix, part, title, description, homepage, authority, version, license, authors, provenance, items
     }
 }
@@ -57,6 +60,7 @@ public struct SymbolItem: Codable, Sendable {
     public var provenance: Provenance?
     public var pattern: PatternProperties?
     public var glyph: GlyphProperties?
+    public var line: LineProperties?
     /// Inline artwork, as compiled source collections carry it.
     public var viewBox: String?
     public var body: String?

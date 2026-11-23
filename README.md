@@ -72,6 +72,24 @@ mapView.mapboxMap.onStyleImageMissing.observe { [weak mapView] event in
 Fill patterns cannot be recoloured on the GPU, so each ink × background combination is its own image. Single-ink
 glyphs can be one image drawn white and added with `sdf: true`, then coloured per feature with `icon-color`.
 
+### Lines
+
+Line items (the `geo` collection's faults, folds, contacts, …) are drawn from layers of strokes and glyphs placed
+along the line. Modifiers in the id choose the location state and the query mark, and `side` puts decorations left
+of travel instead of right (the right-hand rule):
+
+```swift
+// A preview for a picker or legend, along a gently bending sample line.
+let preview = symbols.lineImage("geo:faults:thrust-fault+inferred", size: CGSize(width: 96, height: 24))
+
+// Along any path, in a y-down context; colour, weight and FGDC's drawing option are style.
+symbols.drawLine("geo:folds:anticline+questionable", along: points, in: context, side: -1,
+                 style: LineStyle(unitsPerMM: 4))
+```
+
+For map styles, each placed glyph is a part image: `geo:faults:thrust-fault/sawtooth:#231f20` from
+`styleImage(_:)`, and `…:flip` for the reflected image, which a feature with `side` -1 uses.
+
 ## What it draws
 
 Bundles hold artwork restricted to the **pattern and glyph contracts** of the collection format, which is what

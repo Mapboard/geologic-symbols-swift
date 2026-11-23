@@ -23,9 +23,11 @@ public struct SymbolStyle: @unchecked Sendable {
 public enum SymbolRenderer {
     /// Draws into `rect` of a y-down context. Patterns fill the rect; glyphs keep their aspect, centred.
     /// `recolorable` false draws colours as authored (multicolor glyphs, full-colour patterns).
+    /// `fillsBackground` false leaves the rect unfilled while knock-outs still take the background, for glyphs
+    /// drawn over other artwork (decorations along a line).
     public static func draw(
         _ drawing: Drawing, in context: CGContext, rect: CGRect, style: SymbolStyle,
-        recolorable: Bool = true, preserveAspect: Bool = false
+        recolorable: Bool = true, preserveAspect: Bool = false, fillsBackground: Bool = true
     ) {
         let vb = drawing.viewBox
         guard vb.width > 0, vb.height > 0 else { return }
@@ -39,7 +41,7 @@ public enum SymbolRenderer {
             sy = s
         }
         context.saveGState()
-        if let background = style.background {
+        if fillsBackground, let background = style.background {
             context.setFillColor(background)
             context.fill(rect)
         }
