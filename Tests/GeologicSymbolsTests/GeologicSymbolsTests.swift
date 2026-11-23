@@ -83,6 +83,21 @@ final class GeologicSymbolsTests: XCTestCase {
         XCTAssertThrowsError(try CatalogSet([b, b]))
     }
 
+    func testMergesPartsOfOneCollection() throws {
+        let map = try CollectionBundle(contentsOf: fixture("parted.map"))
+        let column = try CollectionBundle(contentsOf: fixture("parted.column"))
+        let set = try CatalogSet([map, column])
+        XCTAssertEqual(set.resolve("parted:sand")?.bundle.collection.part, "map")
+        XCTAssertEqual(set.resolve("parted:mudstone")?.id, "parted:shale")
+        XCTAssertEqual(set.resolve("parted:shale")?.bundle.collection.part, "column")
+        XCTAssertNotNil(set.patternImage("parted:shale"))
+        XCTAssertEqual(set.list(prefix: "parted").count, 2)
+        XCTAssertThrowsError(try CatalogSet([map, map]))
+        let whole = try CollectionBundle(collection: SymbolCollection(
+            prefix: "parted", title: "Whole", authority: "user", version: "1", items: []))
+        XCTAssertThrowsError(try CatalogSet([whole, column]))
+    }
+
     // MARK: Path data
 
     func testPathDataForms() throws {

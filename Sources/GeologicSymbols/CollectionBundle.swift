@@ -13,8 +13,8 @@ public enum CollectionBundleError: Error, CustomStringConvertible {
     }
 }
 
-/// A collection and its artwork: a `<prefix>.geolsym` bundle directory, or a compiled `collection.json`
-/// with inline artwork. Drawings are parsed on first use and cached.
+/// A collection and its artwork: a `<prefix>.geolsym` (or `<prefix>.<part>.geolsym`) bundle directory, or a
+/// compiled `collection.json` with inline artwork. Drawings are parsed on first use and cached.
 public final class CollectionBundle: @unchecked Sendable {
     /// The newest `bundle_format` this reader understands.
     public static let supportedFormat = 1

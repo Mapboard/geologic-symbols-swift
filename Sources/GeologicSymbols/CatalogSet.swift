@@ -67,7 +67,8 @@ public enum CatalogSetError: Error, CustomStringConvertible {
 
     public var description: String {
         switch self {
-        case .duplicatePrefix(let p): return "collection prefix \"\(p)\" appears twice in a catalog set"
+        case .duplicatePrefix(let p):
+            return "collection prefix \"\(p)\" appears twice in a catalog set without distinct parts"
         case .overriddenTwice(let id): return "\"\(id)\" is overridden twice"
         }
     }
@@ -76,23 +77,33 @@ public enum CatalogSetError: Error, CustomStringConvertible {
 /// An ordered list of collections with resolution across them; mirrors the web core package's `CatalogSet`.
 public final class CatalogSet: @unchecked Sendable {
     public let bundles: [CollectionBundle]
-    private var byPrefix: [String: CollectionBundle] = [:]
+    private var owners: [String: [String: CollectionBundle]] = [:]
     private var keys: [String: [String: SymbolItem]] = [:]
     private var grouped: Set<String> = []
     private var overridden: [String: (CollectionBundle, SymbolItem)] = [:]
 
     public init(_ bundles: [CollectionBundle]) throws {
         self.bundles = bundles
+        var parts: [String: Set<String?>] = [:]
         for b in bundles {
-            guard byPrefix[b.prefix] == nil else { throw CatalogSetError.duplicatePrefix(b.prefix) }
-            byPrefix[b.prefix] = b
+            let seen = parts[b.prefix, default: []]
+            // Bundles may share a prefix only as distinct named parts of one collection.
+            guard seen.isEmpty || (b.collection.part != nil && !seen.contains(b.collection.part) && !seen.contains(nil))
+            else { throw CatalogSetError.duplicatePrefix(b.prefix) }
+            parts[b.prefix, default: []].insert(b.collection.part)
             if b.collection.items.contains(where: { $0.group != nil }) { grouped.insert(b.prefix) }
-            var map: [String: SymbolItem] = [:]
-            for item in b.collection.items { map[item.key] = item }
             for item in b.collection.items {
-                for alias in item.aliases ?? [] where map[alias] == nil { map[alias] = item }
+                keys[b.prefix, default: [:]][item.key] = item
+                owners[b.prefix, default: [:]][item.key] = b
             }
-            keys[b.prefix] = map
+        }
+        for b in bundles {
+            for item in b.collection.items {
+                for alias in item.aliases ?? [] where keys[b.prefix]?[alias] == nil {
+                    keys[b.prefix]?[alias] = item
+                    owners[b.prefix]?[alias] = b
+                }
+            }
         }
         for b in bundles {
             for item in b.collection.items {
@@ -108,7 +119,8 @@ public final class CatalogSet: @unchecked Sendable {
         try self.init(CollectionBundle.bundles(in: directory))
     }
 
-    public func bundle(_ prefix: String) -> CollectionBundle? { byPrefix[prefix] }
+    /// The first bundle with this prefix; a collection in parts has several (`bundles`).
+    public func bundle(_ prefix: String) -> CollectionBundle? { bundles.first { $0.prefix == prefix } }
 
     /// Parses an id the way its collection expects (with or without a group segment).
     public func parse(_ id: String) -> SymbolID? {
@@ -128,7 +140,7 @@ public final class CatalogSet: @unchecked Sendable {
                 part: parsed.part, style: parsed.style, item: replacement, bundle: b, overrides: canonical
             )
         }
-        guard let item, let b = byPrefix[parsed.prefix] else { return nil }
+        guard let item, let b = owners[parsed.prefix]?[localKey] else { return nil }
         return ResolvedSymbol(
             id: canonical, requested: canonical == parsed.key ? nil : parsed.key, modifiers: parsed.modifiers,
             part: parsed.part, style: parsed.style, item: item, bundle: b, overrides: nil

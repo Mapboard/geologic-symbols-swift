@@ -6,6 +6,8 @@ public struct SymbolCollection: Codable, Sendable {
     /// Bundle layout version; nil for a compiled source collection.
     public var bundleFormat: Int?
     public var prefix: String
+    /// Set when a collection is exported in several bundles (`fgdc.map`, `fgdc.column`); a catalog set merges them.
+    public var part: String?
     public var title: String
     public var description: String?
     public var homepage: String?
@@ -18,7 +20,7 @@ public struct SymbolCollection: Codable, Sendable {
 
     enum CodingKeys: String, CodingKey {
         case bundleFormat = "bundle_format"
-        case prefix, title, description, homepage, authority, version, license, authors, provenance, items
+        case prefix, part, title, description, homepage, authority, version, license, authors, provenance, items
     }
 }
 

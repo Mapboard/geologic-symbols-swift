@@ -20,10 +20,12 @@ and depend on the `GeologicSymbols` product.
 ## Collection bundles
 
 A bundle is a directory, `<prefix>.geolsym/`, holding `collection.json` and one SVG per symbol under `patterns/` and
-`glyphs/`. Export them from geology-visualization-standard:
+`glyphs/`. A collection may come in parts, `<prefix>.<part>.geolsym/`, which keep its prefix and are merged by
+`CatalogSet`: FGDC is `fgdc.map` (map-unit patterns and point symbols) and `fgdc.column` (lithology patterns).
+Build them in geology-visualization-standard, then copy the ones the app needs:
 
 ```sh
-yarn bundles --out <your-app>/Resources/Symbols fgdc
+yarn bundles                    # dist/bundles/*.geolsym, each drawn with this package to check it
 ```
 
 Add the folder to the app target as a folder reference, so the bundles keep their directory structure, and commit

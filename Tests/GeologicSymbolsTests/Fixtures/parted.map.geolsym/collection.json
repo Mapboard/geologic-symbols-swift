@@ -1,0 +1,25 @@
+{
+ "bundle_format": 1,
+ "prefix": "parted",
+ "part": "map",
+ "title": "Parted fixture",
+ "authority": "user",
+ "version": "1",
+ "license": "CC0-1.0",
+ "items": [
+  {
+   "name": "sand",
+   "kind": "pattern",
+   "title": "Sand",
+   "viewBox": "0 0 10 10",
+   "body": "<rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" fill=\"currentColor\"/>",
+   "pattern": {
+    "tile": {
+     "width": 10,
+     "height": 10,
+     "units": "pt"
+    }
+   }
+  }
+ ]
+}
