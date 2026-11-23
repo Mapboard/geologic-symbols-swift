@@ -1,0 +1,12 @@
+{
+ "bundle_format": 1,
+ "prefix": "ext",
+ "title": "Grouped fixtures",
+ "authority": "community",
+ "version": "1",
+ "items": [
+  {"name": "thrust", "group": "faults", "kind": "glyph", "title": "Thrust fault", "file": "glyphs/thrust.svg"},
+  {"name": "stripes", "group": "fills", "kind": "glyph", "title": "Replacement stripes", "overrides": "demo:stripes",
+   "file": "glyphs/thrust.svg"}
+ ]
+}

@@ -1,0 +1,23 @@
+{
+ "bundle_format": 1,
+ "prefix": "demo",
+ "title": "Test fixtures",
+ "authority": "user",
+ "version": "1",
+ "license": "CC0-1.0",
+ "items": [
+  {"name": "stripes", "kind": "pattern", "title": "Stripes", "labels": ["Striped", {"value": "Rayas", "lang": "es"}],
+   "aliases": ["old-stripes"], "file": "patterns/stripes.svg",
+   "pattern": {"tile": {"width": 10, "height": 10, "units": "pt"}, "recolorable": true}},
+  {"name": "lenses", "kind": "pattern", "title": "Lenses in ink", "file": "patterns/lenses.svg",
+   "pattern": {"tile": {"width": 10, "height": 10, "units": "pt"}}},
+  {"name": "flag", "kind": "pattern", "title": "Full colour", "file": "patterns/flag.svg",
+   "pattern": {"tile": {"width": 10, "height": 10, "units": "pt"}, "recolorable": false}},
+  {"name": "cross", "kind": "glyph", "title": "Cross", "references": {"fgdc": 627}, "file": "glyphs/cross.svg",
+   "glyph": {"color": "mono", "ink": "#ec008c", "size": {"width": 5, "height": 5, "units": "mm"}}},
+  {"name": "boxed", "kind": "glyph", "title": "Clipped disc", "file": "glyphs/boxed.svg", "glyph": {"color": "mono"}},
+  {"name": "curves", "kind": "glyph", "title": "Arcs and curves", "file": "glyphs/curves.svg"},
+  {"name": "inline", "kind": "glyph", "title": "Inline artwork", "viewBox": "0 0 10 10",
+   "body": "<rect x=\"0\" y=\"0\" width=\"10\" height=\"10\" fill=\"currentColor\"/>"}
+ ]
+}
